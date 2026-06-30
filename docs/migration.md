@@ -477,7 +477,7 @@ Two reference extensions ship in their own modules:
   `tasks/get` (`tasks/update` and `tasks/cancel` are empty acknowledgements).
   The server decides augmentation (the legacy `params.task` field is ignored),
   passes multi round-trip `input_required` interims through un-augmented, and
-  keeps completed tasks in a pluggable `TaskStore` (`Tasks(store=...)`,
+  keeps finished (completed or failed) tasks in a pluggable `TaskStore` (`Tasks(store=...)`,
   in-memory default) that enforces `default_ttl_ms`. A `tasks/*` call from a
   non-declaring modern client is rejected with `-32021` (missing required
   client capability); legacy calls get `METHOD_NOT_FOUND`. The client half is a
@@ -1560,7 +1560,7 @@ Behavior changes:
 
 Tasks ([SEP-1686](https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1686)) have been removed from the MCP specification and are no longer part of this SDK. The `mcp.client.experimental`, `mcp.server.experimental`, `mcp.shared.experimental`, and `mcp.server.lowlevel.experimental` modules have been removed, along with the `experimental` properties on `ClientSession`, `ServerSession`, `Server`, and `ServerRequestContext`. The corresponding `Task*` types remain in `mcp_types` as types-only definitions.
 
-The 2026-07-28 revision reintroduces Tasks as an official extension: [SEP-2663](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2663), `io.modelcontextprotocol/tasks`, redesigned around polling (`tasks/get`) instead of a blocking `tasks/result`. This SDK does not implement the extension yet.
+Tasks have since returned as the built-in `Tasks` extension ([SEP-2663](https://modelcontextprotocol.io/seps/2663-tasks-extension.md)), with a different wire shape than the experimental SEP-1686 surface — see [Server extensions API](#server-extensions-api-sep-2133) above and [Tasks](advanced/tasks.md).
 
 ## Deprecations
 
