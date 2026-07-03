@@ -206,6 +206,18 @@ The fix is the same `transport_security=TransportSecuritySettings(allowed_hosts=
 
 **[Deploy & scale](run/deploy.md)** has the full treatment, including when switching the check off is the honest configuration.
 
+## `409 Conflict: request id <id> is already in flight on this session`
+
+The stateful Streamable HTTP transport routes each response by the request's JSON-RPC `id`, so an `id` must be unique within a session. If a second request reuses an `id` that is still in flight, the server rejects it with `409 Conflict` and a JSON-RPC `-32600` (`INVALID_REQUEST`) instead of mis-routing one request's response to the other.
+
+```text
+HTTP/1.1 409 Conflict
+
+{"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"Conflict: request id 1 is already in flight on this session"}}
+```
+
+It's almost always a client that reuses a fixed `id` (for example, sends `id: 1` on every call) and fires overlapping requests on one session. Give each in-flight request a distinct `id`; an `id` may be reused once the previous request has completed. A stateless server (`stateless_http=True`) has a per-request transport and isn't affected.
+
 ## `RuntimeError: Task group is not initialized. Make sure to use run().`
 
 Your MCP app is mounted inside another ASGI app, and nothing started its **session manager**.
