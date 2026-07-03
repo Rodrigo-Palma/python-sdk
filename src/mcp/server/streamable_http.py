@@ -549,6 +549,20 @@ class StreamableHTTPServerTransport:
 
             request_id = str(message.id)
 
+            # A duplicate in-flight request id would silently overwrite the routing slot
+            # of the earlier request in `_request_streams`, cross-wiring the two POSTs'
+            # responses (see gh-3060). The JSON-RPC id must be unique within a session, so
+            # reject the protocol violation loudly instead of mis-routing one caller's
+            # response to another request.
+            if request_id in self._request_streams:
+                response = self._create_error_response(
+                    f"Conflict: request id {request_id} is already in flight on this session",
+                    HTTPStatus.CONFLICT,
+                    INVALID_REQUEST,
+                )
+                await response(scope, receive, send)
+                return
+
             if self.is_json_response_enabled:
                 self._request_streams[request_id] = anyio.create_memory_object_stream[EventMessage](
                     REQUEST_STREAM_BUFFER_SIZE
